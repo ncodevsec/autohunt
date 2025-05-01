@@ -28,6 +28,8 @@ fi
 # subfinder
 TOOL="subfinder"
 echo -e "\n[+] Running subfinder ..."
+echo -e "[-] Updating subfinder ..."
+subfinder -up
 subfinder -d $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed subfinder.\n"
 
@@ -53,15 +55,17 @@ findomain -q -t $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed $TOOL.\n"
 
 # ffuf
-TOOL="findomain"
+TOOL="ffuf"
 echo -e "\n[+] Running $TOOL ..."
-findomain -q -t $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
+ffuf -w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s | awk -v target="$TARGET" '{print $0"."target}' > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed $TOOL.\n"
 
+
+
 # pureDNS
-TOOL="puredns"
+TOOL="pureDNS"
 echo -e "\n[+] Running $TOOL ..."
-puredns bruteforce /usr/share/ bing.com -q -r resolver.txt > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
+puredns bruteforce $WORDLIST $TARGET -q -r $RESOLVER > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed $TOOL.\n"
 
 # crt.sh
