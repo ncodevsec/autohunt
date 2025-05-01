@@ -15,6 +15,9 @@ TARGET=$1
 
 # Directory
 DIR="~/data/$TARGET/recon/subdomain"
+if [ ! -d "$DIR" ]; then
+    mkdir -p "$DIR"
+fi
 
 # Tools to run
 
