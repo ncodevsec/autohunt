@@ -28,15 +28,13 @@ fi
 # subfinder
 TOOL="subfinder"
 echo -e "\n[+] Running subfinder ..."
-echo -e "[-] Updating subfinder ..."
-subfinder -up
-subfinder -d $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
+subfinder -d $TARGET -silent > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed subfinder.\n"
 
 # sublist3r
 TOOL="sublist3r"
 echo -e "\n[+] Running $TOOL ..."
-sublist3r -d $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
+sublist3r -d $TARGET -e google,yahoo,bing,baidu,yandex > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed $TOOL.\n"
 
 # assetfinder
@@ -49,7 +47,7 @@ echo -e "[-] Completed $TOOL.\n"
 
 
 # findomain
-TOOL="findomail"
+TOOL="findomain"
 echo -e "\n[+] Running $TOOL ..."
 findomain -q -t $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
 echo -e "[-] Completed $TOOL.\n"
