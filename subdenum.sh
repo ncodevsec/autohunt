@@ -1,72 +1,83 @@
 #!/bin/bash
 
-# Demo Command
-# subdenum yahoo.com wordlist.txt resolver.txt output_dir
+# Check for required tools
+TOOLS=(assetfinder jq curl subfinder sublist3r findomain puredns massdns ffuf seclists)
 
-# Input Variables
-# TARGET=$1
-# WORDLIST=$2
-# RESOLVER=$3
-# OUTPUT_DIR=$4
+for tool in "${TOOLS[@]}"; do
+    if ! command -v $tool &> /dev/null; then
+        echo "[-] Error: $tool is not installed. Please install it before running the script."
+        exit 1
+    fi
+done
+
+# Demo Command
+# subdenum yahoo.com wordlist.txt resolver.txt output_dir a
 
 # Input Variables
 TARGET=$1
-WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 RESOLVER="resolver.txt"
 OUTPUT_DIR="$HOME/data/$TARGET/recon/subdomain"
+WRITE_MODE=$2
+
+
+# Directory Configure
 if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR"
 fi
 
+
 # Funtions
-# silent_out() {
-#     "$@" > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-# }
+run() {
+    local TOOL=$1
+    local COMMAND=$2
+    local RESULT=$3
+    echo "--------------------------------------------------"
+    echo -e ":: $TOOL\t\t- Running"
+    if [ "$RESULT" = "save" ]; then
+        local PROMPT="$TOOL $COMMAND > $OUTPUT_DIR/$TOOL.txt"
+        echo -e ":: Prompt\t- $PROMPT"
+        eval "$PROMPT"
+    elif [ "$RESULT" = "no-save" ]; then
+        local PROMPT="$TOOL $COMMAND > /dev/null" # 2>&1
+        echo -e ":: Prompt\t- $PROMPT"
+        eval "$PROMPT"
+    fi
+    echo -e "\t\t\t- Scan Complete"
+}
 
 # Tools to run
 
-# subfinder
-TOOL="subfinder"
-echo -e "\n[+] Running subfinder ..."
-subfinder -d $TARGET -silent > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed subfinder.\n"
-
-# sublist3r
-TOOL="sublist3r"
-echo -e "\n[+] Running $TOOL ..."
-sublist3r -d $TARGET -e google,yahoo,bing,baidu,yandex > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed $TOOL.\n"
-
-# assetfinder
-TOOL="assetfinder"
-echo -e "\n[+] Running $TOOL ..."
-assetfinder -subs-only $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed $TOOL.\n"
+echo -e "\nScanning subdomains on $TARGET"
 
 # amass
+# run amass "-h" no-save
 
-
-# findomain
-TOOL="findomain"
-echo -e "\n[+] Running $TOOL ..."
-findomain -q -t $TARGET > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed $TOOL.\n"
-
-# ffuf
-TOOL="ffuf"
-echo -e "\n[+] Running $TOOL ..."
-ffuf -w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s | awk -v target="$TARGET" '{print $0"."target}' > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed $TOOL.\n"
-
-
-
-# pureDNS
-TOOL="pureDNS"
-echo -e "\n[+] Running $TOOL ..."
-puredns bruteforce $WORDLIST $TARGET -q -r $RESOLVER > $OUTPUT_DIR/$TOOL.txt # > /dev/null 2>&1
-echo -e "[-] Completed $TOOL.\n"
+# assetfinder
+run assetfinder "-subs-only $TARGET" save
 
 # crt.sh
+run curl "-s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
 
+# ffuf
+run ffuf "-w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s" save
 
-echo -e "\n[-]Scan Complete.\n\nSubdomains are saved in - $OUTPUT_DIR/"
+# findomain
+run findomain "-q -t $TARGET" save
+
+# pureDNS
+run puredns "bruteforce $WORDLIST $TARGET -q -r $RESOLVER" save 
+
+# subfinder
+run subfinder "-d $TARGET -silent" save
+
+# sublist3r
+run sublist3r "-d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
+
+echo ":: Scanning Complete"
+echo ":: Subdomains are saved in - $OUTPUT_DIR/"
+
+# marge all unique
+echo -e "\n:: Filtering out unique subdomains and marging them all together"
+cat * | sort -u > $OUTPUT_DIR/all.txt
+echo "   Marging Complete."
