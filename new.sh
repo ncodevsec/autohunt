@@ -22,6 +22,11 @@ WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 # Resolver
 RESOLVER="resolver.txt"
 
+if [ ! -f "$RESOLVER" ]; then
+    echo "[-] Error: Resolver file '$RESOLVER' not found. Please provide a valid resolver file."
+    exit 1
+fi
+
 # Output Directory
 OUTPUT_DIR="$HOME/data/$TARGET/subdomain"
 
@@ -48,12 +53,12 @@ run() {
     echo -e "\t\t\t- Scan Complete"
 }
 
-# Tools to run
-
-echo -e "\nScanning subdomains on $TARGET"
-
-# amass
-if [ "$SCAN_MODE" != "fast" ]; then
+if [ "$SCAN_MODE" = "fast" ]; then
+    echo -e "Scan Mode\t\t: Fast"
+else
+    echo -e "Scan Mode\t\t: Deep"
+    run "amass" "amass enum -d $TARGET -silent -nocolor | grep -E '\.${TARGET}$'" save
+fi
     echo -e "Scan Mode\t\t: Fast"
 else
     echo -e "Scan Mode\t\t: Deep"
@@ -81,7 +86,7 @@ run "subfinder" "subfinder -d $TARGET -silent" save
 # sublist3r
 run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
-echo ":: Scanning Complete"
+cat $OUTPUT_DIR/*.txt | sort -u > $OUTPUT_DIR/all.txt
 echo ":: Subdomains are saved in - $OUTPUT_DIR/"
 
 # marge all unique
@@ -89,12 +94,12 @@ echo -e "\n:: Filtering out unique subdomains and marging them all together"
 cat * | sort -u > $OUTPUT_DIR/all.txt
 echo "   Marging Complete."
 
-# # httpx - Filter out Live Subdomains
-# run "httpx" "cat $OUTPUT_DIR/all.txt | httpx -silent -nc -status-code | grep '\[200\]' | awk '{print $1}'" save
+# httpx - Filter out Live Subdomains
+run "httpx" "cat $OUTPUT_DIR/all.txt | httpx -silent -nc -status-code | grep '\[200\]' | awk '{print $1}'" save
 
-# # aquatone - Capturing Screenshot
-# run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone"
-# echo -e ":: Screenshots are saved in $PWD/aquatone/screenshots/"
-# echo -e ":: To view all Screenshots in a single file, visit - $PWD/aquatone/aquatone_report.html"
+# aquatone - Capturing Screenshot
+run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone"
+echo -e ":: Screenshots are saved in $PWD/aquatone/screenshots/"
+echo -e ":: To view all Screenshots in a single file, visit - $PWD/aquatone/aquatone_report.html"
 
 echo ":: Everything Complete. Now you are able to see the result. "
