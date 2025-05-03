@@ -45,7 +45,11 @@ run() {
         # echo -e ":: Prompt\t\t- $PROMPT"
         eval "$PROMPT"
     elif [ "$RESULT" = "no-save" ]; then
-        local PROMPT="$COMMAND > /dev/null" # 2>&1
+        local PROMPT="$COMMAND > /dev/null"
+        # echo -e ":: Prompt\t\t- $PROMPT"
+        eval "$PROMPT"
+    else 
+        local PROMPT="$COMMAND"
         # echo -e ":: Prompt\t\t- $PROMPT"
         eval "$PROMPT"
     fi
@@ -100,8 +104,15 @@ echo -e "\t\t\t- Marging Complete."
 run "httpx" "cat $OUTPUT_DIR/sort.txt | httpx -silent -nc -status-code -t 500 | grep '\[20' | awk '{print \$1}'" save
 
 # aquatone - Site Mapping & Capturing Screenshot
-run "aquatone" "mkdir $OUTPUT_DIR/aquatone && cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone"
-echo -e ":: Screenshots are saved in $OUTPUT_DIR/aquatone/screenshots/"
-echo -e ":: To view all Screenshots in a single file, visit - $OUTPUT_DIR/aquatone/aquatone_report.html"
+if [ ! -d "$OUTPUT_DIR/aquatone" ]; then
+    mkdir -p "$OUTPUT_DIR/aquatone"
+fi
+
+# run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ -scan-timeout 5000 -screenshot-timeout 180000"
+run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ "
+echo -e ":: Aquatone Dir\t: $OUTPUT_DIR/aquatone"
+
+# echo -e ":: Screenshots are saved in $OUTPUT_DIR/aquatone/screenshots/"
+# echo -e ":: To view all Screenshots in a single file, visit - $OUTPUT_DIR/aquatone/aquatone_report.html"
 
 echo ":: Everything Complete. Now you are able to see the result. "
