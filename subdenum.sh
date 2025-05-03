@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check for required tools
-TOOLS=(assetfinder jq curl subfinder sublist3r findomain puredns massdns ffuf seclists)
+TOOLS=(assetfinder jq curl subfinder sublist3r findomain puredns massdns ffuf)
 
 # go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
 
@@ -21,7 +21,10 @@ SCAN_MODE=$2
 # Wordlist
 # WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
-
+if [ ! -f "$WORDLIST" ]; then
+    echo "[-] Error: Seclist is not installed. Please install it before running the script."
+    exit 1
+fi
 # Resolver
 RESOLVER="resolver.txt"
 
@@ -107,12 +110,12 @@ run "httpx" "cat $OUTPUT_DIR/sort.txt | httpx -silent -nc -status-code -t 500 | 
 if [ ! -d "$OUTPUT_DIR/aquatone" ]; then
     mkdir -p "$OUTPUT_DIR/aquatone"
 fi
-
-# run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ -scan-timeout 5000 -screenshot-timeout 180000"
-run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ "
+run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ -scan-timeout 5000 -screenshot-timeout 180000"
+# run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/"
 echo -e ":: Aquatone Dir\t: $OUTPUT_DIR/aquatone"
 
 # echo -e ":: Screenshots are saved in $OUTPUT_DIR/aquatone/screenshots/"
 # echo -e ":: To view all Screenshots in a single file, visit - $OUTPUT_DIR/aquatone/aquatone_report.html"
 
-echo ":: Everything Complete. Now you are able to see the result. "
+echo ":: Everything Complete."
+echo ":: Now you are able to see the result."
