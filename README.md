@@ -41,16 +41,14 @@ Also ensure you have a valid resolver list at `resolver.txt` inside the script d
 Clone the repository and make the script executable:
 
 ```bash
-git clone https://github.com/yourusername/subdenum.git
-cd subdenum
+git clone https://github.com/ncodevsec/autohunt.git
+cd autohunt
 chmod +x subdenum.sh
+```
 
 Update the wordlist path in the script if needed:
-
-```bash
-# Default
+```
 WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
-
 ```
 
 ---
