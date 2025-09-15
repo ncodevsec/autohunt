@@ -102,6 +102,13 @@ run "subfinder" "subfinder -d $TARGET -silent" save
 # sublist3r
 run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
+# Removing extra files
+if [ -f "$OUTPUT_DIR/amass_raw.txt" ]; then
+    rm "$OUTPUT_DIR/amass_raw.txt"
+fi
+if [ -f "$OUTPUT_DIR/ffuf.json" ]; then
+    rm "$OUTPUT_DIR/ffuf.json"
+fi
 
 # marge unique subdomains
 echo -e "\n:: Marging Unique Subdomains"
@@ -126,20 +133,13 @@ aquatone() {
 # aquatone
 
 # Modify final files
-if [ -d "$OUTPUT_DIR/sort.txt" ]; then
-    mv $OUTPUT_DIR/sort.txt $OUTPUT_DIR/all_subdomains.txt
+if [ -f "$OUTPUT_DIR/sort.txt" ]; then
+    mv "$OUTPUT_DIR/sort.txt" "$OUTPUT_DIR/all_subdomains.txt"
 fi
-if [ -d "$OUTPUT_DIR/httpx.txt" ]; then
-    mv $OUTPUT_DIR/httpx.txt $OUTPUT_DIR/live_subdomains.txt
+if [ -f "$OUTPUT_DIR/httpx.txt" ]; then
+    mv "$OUTPUT_DIR/httpx.txt" "$OUTPUT_DIR/live_subdomains.txt"
 fi
 
-# Removing extra files
-if [ -d "$OUTPUT_DIR/amass_raw.txt" ]; then
-    rm $OUTPUT_DIR/amass_raw.txt
-fi
-if [ -d "$OUTPUT_DIR/ffuf.json " ]; then
-    rm $OUTPUT_DIR/ffuf.json
-fi
 
 echo ":: Scan Complete."
 echo ":: Subdomains are saved in - $OUTPUT_DIR"
@@ -147,7 +147,4 @@ echo ":: Subdomains are saved in - $OUTPUT_DIR"
 # echo "\n:: Live Subdomain List"
 # echo "--------------------------------------------------"
 # cat $OUTPUT_DIR/live_subdomains.txt
-
-
-
 
