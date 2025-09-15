@@ -21,6 +21,7 @@ SCAN_MODE=$2
 # Wordlist
 # WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
+
 if [ ! -f "$WORDLIST" ]; then
     echo "[-] Error: Seclist is not installed. Please install it before running the script."
     exit 1
@@ -74,10 +75,10 @@ if [ "$SCAN_MODE" == "deep" ]; then
     echo -e ":: Scan Mode\t\t: Deep"
 
     # amass
-    run "amass" "amass enum -d $TARGET -silent -nocolor | grep -E '\.${TARGET}$'" save
+    run "amass" "amass enum -d "$TARGET" -silent -nocolor -o $OUTPUT_DIR/amass_raw.txt && cat $OUTPUT_DIR/amass_raw.txt | grep -E "\.$TARGET" | awk '{print \$1}'" save
 
     # ffuf
-    run "ffuf" "ffuf -w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s | sed 's/^/&.$TARGET/'" save
+    # run "ffuf" "ffuf -w "$WORDLIST" -u https://FUZZ.$TARGET -of json -o $OUTPUT_DIR/ffuf.json &> /dev/null && jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https\?://||' > "$OUTPUT_DIR/ffuf.txt""
 else
     echo -e ":: Scan Mode\t\t: Fast"
 fi
@@ -124,9 +125,17 @@ aquatone() {
 }
 # aquatone
 
+# Modify final files
+mv $OUTPUT_DIR/sort.txt $OUTPUT_DIR/all_subdomains.txt
+mv $OUTPUT_DIR/httpx.txt $OUTPUT_DIR/live_subdomains.txt
+
+# Removing extra files
+rm $OUTPUT_DIR/amass_raw.txt 
+rm $OUTPUT_DIR/ffuf.json 
+
 echo ":: Scan Complete."
 echo ":: Subdomains are saved in - $OUTPUT_DIR"
 
 # echo "\n:: Live Subdomain List"
 # echo "--------------------------------------------------"
-# cat $OUTPUT_DIR/httpx.txt
+# cat $OUTPUT_DIR/live_subdomains.txt
