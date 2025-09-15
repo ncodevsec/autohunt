@@ -126,6 +126,7 @@ aquatone() {
 
 echo ":: Scan Complete."
 echo ":: Subdomains are saved in - $OUTPUT_DIR"
-echo "/n:: Live Subdomain List"
-echo "--------------------------------------------------"
-cat $OUTPUT_DIR/httpx.txt
+
+# echo "\n:: Live Subdomain List"
+# echo "--------------------------------------------------"
+# cat $OUTPUT_DIR/httpx.txt
