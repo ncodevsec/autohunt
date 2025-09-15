@@ -25,8 +25,12 @@ if [ ! -f "$WORDLIST" ]; then
     echo "[-] Error: Seclist is not installed. Please install it before running the script."
     exit 1
 fi
+
+# Get the directory of the current script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Resolver
-RESOLVER="resolver.txt"
+RESOLVER="./resolver.txt"
 
 # Output Directory
 OUTPUT_DIR="$HOME/data/$TARGET/subdomain"
@@ -56,7 +60,7 @@ run() {
         # echo -e ":: Prompt\t\t- $PROMPT"
         eval "$PROMPT"
     fi
-    echo -e "\t\t\t- Scan Complete"
+    echo -e "\t\t\t- Finish"
     sleep 0.3
 }
 
@@ -66,56 +70,62 @@ echo "--------------------------------------------------"
 echo -e ":: Tool\t\t\t: subdenum"
 echo -e ":: Target\t\t: $TARGET"
 
-# amass
-if [ "$SCAN_MODE" != "fast" ]; then
-    echo -e ":: Scan Mode\t\t: Fast"
-else
+if [ "$SCAN_MODE" == "deep" ]; then
     echo -e ":: Scan Mode\t\t: Deep"
+
+    # amass
     run "amass" "amass enum -d $TARGET -silent -nocolor | grep -E '\.${TARGET}$'" save
+
+    # ffuf
+    run "ffuf" "ffuf -w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s | sed 's/^/&.$TARGET/'" save
+else
+    echo -e ":: Scan Mode\t\t: Fast"
 fi
 
+echo -e "\n:: Running subdomain finding tools"
 # assetfinder
 run "assetfinder" "assetfinder -subs-only $TARGET" save
 
 # crt.sh
 run "crt" "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
 
-# ffuf
-run "ffuf" "ffuf -w $WORDLIST -u https://FUZZ.$TARGET -mc 200 -s | sed 's/^/&.$TARGET/'" save
-
 # findomain
 run "findomain" "findomain -q -t $TARGET" save
 
 # pureDNS
-run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r $RESOLVER" save 
+run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.txt" save 
 
 # subfinder
 run "subfinder" "subfinder -d $TARGET -silent" save
 
 # sublist3r
-run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
+# run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
-echo ":: Scanning Complete"
-echo ":: Subdomains are saved in - $OUTPUT_DIR/"
 
-# marge all unique
-echo -e "\n:: Filtering out unique subdomains and marging them all together"
+# marge unique subdomains
+echo -e "\n:: Marging Unique Subdomains"
 run "sort" "cat $OUTPUT_DIR/* | sort -u" save 
-echo -e "\t\t\t- Marging Complete."
 
 # httpx - Filter out Live Subdomains
+echo -e "\n:: Filtering Live Subdomains"
 run "httpx" "cat $OUTPUT_DIR/sort.txt | httpx -silent -nc -status-code -t 500 | grep '\[20' | awk '{print \$1}'" save
 
 # aquatone - Site Mapping & Capturing Screenshot
-if [ ! -d "$OUTPUT_DIR/aquatone" ]; then
-    mkdir -p "$OUTPUT_DIR/aquatone"
-fi
-run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ -scan-timeout 5000 -screenshot-timeout 180000"
-# run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/"
-echo -e ":: Aquatone Dir\t: $OUTPUT_DIR/aquatone"
+aquatone() {
+    if [ ! -d "$OUTPUT_DIR/aquatone" ]; then
+        mkdir -p "$OUTPUT_DIR/aquatone"
+    fi
+    run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/ -scan-timeout 5000 -screenshot-timeout 180000"
+    # run "aquatone" "cat $OUTPUT_DIR/httpx.txt | aquatone -out $OUTPUT_DIR/aquatone/"
+    echo -e ":: Aquatone Dir\t: $OUTPUT_DIR/aquatone"
 
-# echo -e ":: Screenshots are saved in $OUTPUT_DIR/aquatone/screenshots/"
-# echo -e ":: To view all Screenshots in a single file, visit - $OUTPUT_DIR/aquatone/aquatone_report.html"
+    # echo -e ":: Screenshots are saved in $OUTPUT_DIR/aquatone/screenshots/"
+    # echo -e ":: To view all Screenshots in a single file, visit - $OUTPUT_DIR/aquatone/aquatone_report.html"
+}
+# aquatone
 
-echo ":: Everything Complete."
-echo ":: Now you are able to see the result."
+echo ":: Scan Complete."
+echo ":: Subdomains are saved in - $OUTPUT_DIR"
+echo "/n:: Live Subdomain List"
+echo "--------------------------------------------------"
+cat $OUTPUT_DIR/httpx.txt
