@@ -78,7 +78,7 @@ if [ "$SCAN_MODE" == "deep" ]; then
     run "amass" "amass enum -d "$TARGET" -silent -nocolor -o $OUTPUT_DIR/amass_raw.txt && cat $OUTPUT_DIR/amass_raw.txt | grep -E "\.$TARGET" | awk '{print \$1}'" save
 
     # ffuf
-    # run "ffuf" "ffuf -w "$WORDLIST" -u https://FUZZ.$TARGET -of json -o $OUTPUT_DIR/ffuf.json &> /dev/null && jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https\?://||' > "$OUTPUT_DIR/ffuf.txt""
+    run "ffuf" "ffuf -w "$WORDLIST" -u https://FUZZ.$TARGET -of json -o $OUTPUT_DIR/ffuf.json &> /dev/null && jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https\?://||' > "$OUTPUT_DIR/ffuf.txt""
 else
     echo -e ":: Scan Mode\t\t: Fast"
 fi
@@ -100,7 +100,7 @@ run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.
 run "subfinder" "subfinder -d $TARGET -silent" save
 
 # sublist3r
-# run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
+run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
 
 # marge unique subdomains
@@ -126,12 +126,20 @@ aquatone() {
 # aquatone
 
 # Modify final files
-mv $OUTPUT_DIR/sort.txt $OUTPUT_DIR/all_subdomains.txt
-mv $OUTPUT_DIR/httpx.txt $OUTPUT_DIR/live_subdomains.txt
+if [ -d "$OUTPUT_DIR/sort.txt" ]; then
+    mv $OUTPUT_DIR/sort.txt $OUTPUT_DIR/all_subdomains.txt
+fi
+if [ -d "$OUTPUT_DIR/httpx.txt" ]; then
+    mv $OUTPUT_DIR/httpx.txt $OUTPUT_DIR/live_subdomains.txt
+fi
 
 # Removing extra files
-rm $OUTPUT_DIR/amass_raw.txt 
-rm $OUTPUT_DIR/ffuf.json 
+if [ -d "$OUTPUT_DIR/amass_raw.txt" ]; then
+    rm $OUTPUT_DIR/amass_raw.txt
+fi
+if [ -d "$OUTPUT_DIR/ffuf.json " ]; then
+    rm $OUTPUT_DIR/ffuf.json
+fi
 
 echo ":: Scan Complete."
 echo ":: Subdomains are saved in - $OUTPUT_DIR"
@@ -139,3 +147,7 @@ echo ":: Subdomains are saved in - $OUTPUT_DIR"
 # echo "\n:: Live Subdomain List"
 # echo "--------------------------------------------------"
 # cat $OUTPUT_DIR/live_subdomains.txt
+
+
+
+
