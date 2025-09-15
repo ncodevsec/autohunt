@@ -19,8 +19,8 @@ TARGET=$1
 SCAN_MODE=$2
 
 # Wordlist
-# WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
-WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
+WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
+# WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
 
 if [ ! -f "$WORDLIST" ]; then
     echo "[-] Error: Seclist is not installed. Please install it before running the script."
