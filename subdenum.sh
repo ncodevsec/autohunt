@@ -34,7 +34,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOLVER="./resolver.txt"
 
 # Output Directory
-OUTPUT_DIR="/workspace/bug_hunting_data/$TARGET/subdomain"
+OUTPUT_DIR="$HOME/bug_hunting_data/$TARGET/subdomain"
 
 if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR"
