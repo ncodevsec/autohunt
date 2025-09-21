@@ -73,41 +73,46 @@ echo -e ":: Target\t\t: $TARGET"
 
 if [ "$SCAN_MODE" == "deep" ]; then
     echo -e ":: Scan Mode\t\t: Deep"
-
-    # amass
-    run "amass" "amass enum -d "$TARGET" -silent -nocolor -o $OUTPUT_DIR/amass_raw.txt && cat $OUTPUT_DIR/amass_raw.txt | grep -E "\.$TARGET" | awk '{print \$1}'" save
-
-    # ffuf
-    run "ffuf" "ffuf -w "$WORDLIST" -u https://FUZZ.$TARGET -of json -o $OUTPUT_DIR/ffuf.json &> /dev/null && jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https\?://||' > "$OUTPUT_DIR/ffuf.txt""
 else
     echo -e ":: Scan Mode\t\t: Fast"
 fi
 
 echo -e "\n:: Running subdomain finding tools"
 # assetfinder
-run "assetfinder" "assetfinder -subs-only $TARGET" save
+# run "assetfinder" "assetfinder -subs-only $TARGET" save
 
-# crt.sh
-run "crt" "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
+# # crt.sh
+# run "crt" "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
 
-# findomain
-run "findomain" "findomain -q -t $TARGET" save
+# # findomain
+# run "findomain" "findomain -q -t $TARGET" save
 
-# pureDNS
-run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.txt" save 
+# # pureDNS
+# run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.txt" save 
 
-# subfinder
-run "subfinder" "subfinder -d $TARGET -silent" save
+# # subfinder
+# run "subfinder" "subfinder -d $TARGET -silent" save
 
-# sublist3r
-run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
+# # sublist3r
+# run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
-# Removing extra files
-if [ -f "$OUTPUT_DIR/amass_raw.txt" ]; then
-    rm "$OUTPUT_DIR/amass_raw.txt"
-fi
-if [ -f "$OUTPUT_DIR/ffuf.json" ]; then
-    rm "$OUTPUT_DIR/ffuf.json"
+# Deep Scan
+if [ "$SCAN_MODE" == "deep" ]; then
+    # amass
+    run "amass" "amass enum -d "$TARGET" -silent -nocolor -o $OUTPUT_DIR/amass_raw.txt && cat $OUTPUT_DIR/amass_raw.txt | grep -E "\.$TARGET" | awk '{print \$1}'" save
+    
+    # Removing extra files
+    if [ -f "$OUTPUT_DIR/amass_raw.txt" ]; then
+        rm "$OUTPUT_DIR/amass_raw.txt"
+    fi
+
+    # ffuf
+    run "ffuf" "ffuf -w "$WORDLIST" -u https://FUZZ.$TARGET -of json -o $OUTPUT_DIR/ffuf.json &> /dev/null && jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https\?://||' > "$OUTPUT_DIR/ffuf.txt""
+    
+    # Removing extra files
+    if [ -f "$OUTPUT_DIR/ffuf.json" ]; then
+        rm "$OUTPUT_DIR/ffuf.json"
+    fi
 fi
 
 # marge unique subdomains
