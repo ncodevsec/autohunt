@@ -79,22 +79,22 @@ fi
 
 echo -e "\n:: Running subdomain finding tools"
 # assetfinder
-# run "assetfinder" "assetfinder -subs-only $TARGET" save
+run "assetfinder" "assetfinder -subs-only $TARGET" save
 
-# # crt.sh
-# run "crt" "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
+# crt.sh
+run "crt" "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'" save
 
-# # findomain
-# run "findomain" "findomain -q -t $TARGET" save
+# findomain
+run "findomain" "findomain -q -t $TARGET" save
 
-# # pureDNS
-# run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.txt" save 
+# pureDNS
+run "puredns" "puredns bruteforce $WORDLIST $TARGET -q -r  $SCRIPT_DIR/resolver.txt" save 
 
-# # subfinder
-# run "subfinder" "subfinder -d $TARGET -silent" save
+# subfinder
+run "subfinder" "subfinder -d $TARGET -silent" save
 
-# # sublist3r
-# run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
+# sublist3r
+run "sublist3r" "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u" save
 
 # Deep Scan
 if [ "$SCAN_MODE" == "deep" ]; then
