@@ -1,17 +1,20 @@
+
 # subdenum – Automated Subdomain Enumeration & Recon Toolkit
 
 A fast and extensible Bash script for **subdomain enumeration** and **live host detection**.
-`subdenum` combines multiple industry-standard tools into a single workflow, automatically aggregating results, filtering duplicates, and optionally taking screenshots with Aquatone.
+`subdenum` combines multiple industry-standard tools into a single workflow, automatically aggregating results, filtering duplicates, and optionally taking screenshots with Aquatone. The script now supports improved output handling, error checking, and flexible scan modes.
 
 
 
 ## ✨ Features
 
-- **Multi-source subdomain discovery**: `assetfinder`, `crt.sh`, `findomain`, `subfinder`, `puredns`, `amass` (deep mode).
-- **Bruteforce support** with configurable wordlists.
-- **Live host detection** using `httpx`.
-- **Screenshot & site mapping** via Aquatone.
-- **Structured output** in `$HOME/data/<target>/subdomain`.
+- **Multi-source subdomain discovery**: `assetfinder`, `crt.sh`, `findomain`, `subfinder`, `sublist3r`, `puredns`, `amass` (deep mode), `ffuf` (deep mode).
+- **Bruteforce support** with configurable wordlists (default: top 20,000 subdomains).
+- **Live host detection** using `httpx` (CSV output).
+- **Screenshot & site mapping** via Aquatone (function included, call is commented by default).
+- **Fast and Deep scan modes**: Deep mode adds Amass and FFUF for more comprehensive results.
+- **Automatic tool and wordlist checks**: Script verifies dependencies and wordlist presence before running.
+- **Structured output** in `$HOME/bug_hunting_data/<target>/subdomain`.
 
 
 
@@ -33,7 +36,7 @@ Install the following tools before running:
 - [Aquatone](https://github.com/michenriksen/aquatone) *(optional for screenshots)*
 
 Also, ensure you have a valid resolver list at `resolver.txt` inside the script directory.
-
+The default wordlist is `/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt`.
 
 
 ## 📦 Installation
@@ -41,37 +44,35 @@ Also, ensure you have a valid resolver list at `resolver.txt` inside the script 
 Clone the repository and make the script executable:
 
 ```bash
-git clone https://github.com/ncodevsec/autohunt.git && chmod +x autohunt/subdenum.sh
+git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x subdenum.sh
 ```
 
 Update the wordlist path in the script if needed:
-```
+```bash
+# Edit the WORDLIST variable in subdenum.sh if you want a different wordlist
 WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
 ```
-
 
 
 ## 🚀 Usage
 
 ```bash
 ./subdenum.sh <target-domain> <mode>
-
 ```
 
 - `<target-domain>`: Domain to enumerate (e.g. `example.com`)
 - `<mode>`: `fast` (default) or `deep`
-    - `deep` mode runs additional tools like Amass and FFUF, brute forcing.
+    - `deep` mode runs additional tools like Amass and FFUF for brute forcing and extended enumeration.
 
 Examples:
 
 ```bash
-# Normal Mode
+# Fast Mode (default)
 ./subdenum.sh example.com
 
-# Deep Mode 
+# Deep Mode (more comprehensive)
 ./subdenum.sh example.com deep
 ```
-
 
 
 ## 📂 Output Structure
@@ -79,7 +80,7 @@ Examples:
 Results are stored under:
 
 ```
-$HOME/data/<target-domain>/subdomain/
+$HOME/bug_hunting_data/<target-domain>/subdomain/
 ```
 
 Files include:
@@ -92,23 +93,18 @@ Files include:
 - `subfinder.txt` – Subfinder results
 - `sublist3r.txt` – Sublist3r results
 - `sort.txt` – All merged & unique subdomains
-- `httpx.txt` – Live hosts (status 20x)
+- `all.txt` – Cleaned, protocol-stripped subdomains (input for httpx)
+- `httpx.csv` – Live hosts (CSV output from httpx)
 - `aquatone/` – Screenshots and HTML report (if Aquatone run)
-
 
 
 ## 📝 Notes
 
 - Ensure your wordlist and `resolver.txt` are correctly configured.
-- Aquatone execution is defined but commented out — uncomment `aquatone` function call to enable screenshots.
-- The script filters only `20x` HTTP responses by default; adjust the `grep '\[20'` line for other status codes.
-
-
-
-## 📜 License
-
-This project is licensed under the MIT License – see LICENSE for details.
-
+- Aquatone execution is defined but commented out — uncomment the `aquatone` function call in the script to enable screenshots.
+- The script now merges and cleans all subdomain results, strips protocols, and outputs to `all.txt` before live host checking.
+- Live host filtering is performed with `httpx` and results are saved as CSV in `httpx.csv`.
+- Output directory is now `$HOME/bug_hunting_data/<target>/subdomain`.
 
 
 ## 💡 Tips for Bug Hunters
@@ -116,3 +112,5 @@ This project is licensed under the MIT License – see LICENSE for details.
 - Run `fast` mode frequently for quick recon.
 - Use `deep` mode for comprehensive enumeration before a full engagement.
 - Combine output with other tools (e.g. nuclei, dirsearch) for deeper testing.
+- Review the script output and logs for any missing dependencies or errors.
+- Customize the wordlist and scan logic as needed for your workflow.
