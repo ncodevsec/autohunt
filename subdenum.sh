@@ -118,10 +118,11 @@ fi
 # marge unique subdomains
 echo -e "\n:: Marging Unique Subdomains"
 run "sort" "cat $OUTPUT_DIR/* | sort -u" save 
+run "sed" "sed -E 's#https?://##g' $OUTPUT_DIR/sort.txt > $OUTPUT_DIR/all.txt"
 
 # httpx - Filter out Live Subdomains
 echo -e "\n:: Filtering Live Subdomains"
-run "httpx" "cat $OUTPUT_DIR/sort.txt | httpx -silent -nc -status-code -t 500 | grep '\[20' | awk '{print \$1}'" save
+run "httpx" "cat $OUTPUT_DIR/all.txt | httpx -silent -o $OUTPUT_DIR/httpx.csv -csv &> /dev/null"
 
 # aquatone - Site Mapping & Capturing Screenshot
 aquatone() {
@@ -137,19 +138,6 @@ aquatone() {
 }
 # aquatone
 
-# Modify final files
-if [ -f "$OUTPUT_DIR/sort.txt" ]; then
-    mv "$OUTPUT_DIR/sort.txt" "$OUTPUT_DIR/all_subdomains.txt"
-fi
-if [ -f "$OUTPUT_DIR/httpx.txt" ]; then
-    mv "$OUTPUT_DIR/httpx.txt" "$OUTPUT_DIR/live_subdomains.txt"
-fi
-
-
 echo ":: Scan Complete."
 echo ":: Subdomains are saved in - $OUTPUT_DIR"
-
-# echo "\n:: Live Subdomain List"
-# echo "--------------------------------------------------"
-# cat $OUTPUT_DIR/live_subdomains.txt
 
