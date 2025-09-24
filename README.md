@@ -45,6 +45,29 @@ Clone the repository and make the script executable:
 
 ```bash
 git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x subdenum.sh
+# Clone repo
+cd autohunt
+
+# Make setup script executable
+chmod +x setup.sh
+
+# Install alias
+./setup.sh -i
+
+# Run the tool
+subdenum <domain>
+
+# Uninstall alias
+./setup.sh uninstall
+
+# Show setup help
+./setup.sh -h
+
+```
+
+One line installation command
+```bash
+git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x setup.sh && ./setup.sh -i && source ~/.bashrc
 ```
 
 Update the wordlist path in the script if needed:
@@ -57,8 +80,18 @@ WORDLIST="/usr/share/seclists/Discovery/DNS/deepmagic.com-prefixes-top500.txt"
 ## 🚀 Usage
 
 ```bash
-./subdenum.sh <target-domain> <mode>
+subdenum <target-domain> <option>
 ```
+```bash
+Options:
+   blank        Scan in Normal Mode (Default)
+   --deep       Scan in Deep Mode
+
+Example:
+  subdenum example.com          # To run in normal mode
+  subdemun example.com --deep   # To run in deep mode
+```
+
 
 - `<target-domain>`: Domain to enumerate (e.g. `example.com`)
 - `<mode>`: `fast` (default) or `deep`
@@ -68,10 +101,10 @@ Examples:
 
 ```bash
 # Fast Mode (default)
-./subdenum.sh example.com
+subdenum example.com
 
 # Deep Mode (more comprehensive)
-./subdenum.sh example.com deep
+subdenum example.com deep
 ```
 
 

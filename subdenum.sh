@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
 YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-SPEACIAL='\033[0;36m'
+BLUE='\033[1;34m'
+SPEACIAL='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Common String Variables
@@ -53,6 +53,17 @@ check_requirements() {
     msg ok "All required tools are installed."
 }
 
+# Show help
+show_help() {
+    echo -e "${BLUE}Usage:${NC} subdenum <target> [option]\n"
+    echo -e "${BLUE}Options:${NC}"
+    echo -e "  ${YELLOW} blank${NC}\tScan in Normal Mode (Default)"
+    echo -e "  ${GREEN} --deep${NC}\tScan in Deep Mode\n"
+    echo -e "${BLUE}Example:${NC}"
+    echo -e "  ${YELLOW}subdenum ${NC}${GREEN}example.com${NC} \t\t# To run in normal mode"
+    echo -e "  ${YELLOW}subdemun ${NC}${GREEN}example.com${NC} ${YELLOW}--deep${NC} \t# To run in deep mode"
+}
+
 # Function to run a command and handle output
 run_tool() {
     local tool_name=$1
@@ -75,15 +86,26 @@ run_tool() {
 
 # --- Main Script ---
 
-# Check for target domain
-if [ -z "$1" ]; then
-    msg err "Target domain not provided."
-    echo "Usage: $0 <target_domain> [deep]"
+# Argument check
+if [ $# -eq 0 ]; then
+    msg err "No arguments provided."
+    show_help
     exit 1
 fi
 
-TARGET=$1
-SCAN_MODE=$2
+# First argument could be help flag
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    *)
+        TARGET="$1"
+        ;;
+esac
+
+# Optional second argument
+SCAN_MODE="${2:-}"
 
 # List of required tools
 tools=(
@@ -111,7 +133,7 @@ msg header "Script Overview"
 echo "$DEVIDER"
 msg "" "Task\t: ${GREEN}Subdomain Enumeration${NC}"
 msg "" "Target\t: ${GREEN}$TARGET${NC}"
-if [ "$SCAN_MODE" == "deep" ]; then
+if [ "$SCAN_MODE" == "--deep" ]; then
     msg speacial "Scan\t: " "Deep${NC}"
 else
     msg "" "Scan\t: ${GREEN}Fast${NC}"
