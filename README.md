@@ -22,18 +22,46 @@ A fast and extensible Bash script for **subdomain enumeration** and **live host 
 
 Install the following tools before running:
 
-- [assetfinder](https://github.com/tomnomnom/assetfinder)
-- [jq](https://stedolan.github.io/jq/)
-- [curl](https://curl.se/)
-- [subfinder](https://github.com/projectdiscovery/subfinder)
-- [sublist3r](https://github.com/aboul3la/Sublist3r)
-- [findomain](https://github.com/findomain/findomain)
-- [puredns](https://github.com/d3mondev/puredns)
-- [massdns](https://github.com/blechschmidt/massdns)
-- [ffuf](https://github.com/ffuf/ffuf) *(Deep mode)*
-- [amass](https://github.com/owasp-amass/amass) *(Deep mode)*
-- [httpx](https://github.com/projectdiscovery/httpx)
-- [Aquatone](https://github.com/michenriksen/aquatone) *(optional for screenshots)*
+```bash
+# System packages
+sudo apt update && sudo apt install -y curl jq git unzip
+
+# Amass (Deep mode)
+sudo apt install -y amass
+
+# Assetfinder
+go install github.com/tomnomnom/assetfinder@latest
+
+# Subfinder
+go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+
+# FFUF (Deep mode)
+go install github.com/ffuf/ffuf@latest
+
+# HTTPX
+go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+
+# PureDNS
+go install github.com/d3mondev/puredns/v2@latest
+
+# MassDNS
+git clone https://github.com/blechschmidt/massdns.git ~/massdns
+cd ~/massdns
+make
+sudo cp bin/massdns /usr/local/bin/
+cd -
+
+# Sublist3r
+git clone https://github.com/aboul3la/Sublist3r.git ~/Sublist3r
+sudo apt install -y python3-pip
+pip3 install -r ~/Sublist3r/requirements.txt
+
+# Findomain (precompiled)
+wget https://github.com/findomain/findomain/releases/latest/download/findomain-linux -O ~/findomain
+chmod +x ~/findomain
+sudo mv ~/findomain /usr/local/bin/
+
+```
 
 Also, ensure you have a valid resolver list at `resolver.txt` inside the script directory.
 The default wordlist is `/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt`.

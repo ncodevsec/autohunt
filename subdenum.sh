@@ -109,7 +109,7 @@ SCAN_MODE="${2:-}"
 
 # List of required tools
 tools=(
-    assetfinder jq curl findomain puredns subfinder
+    assetfinder jq curl findomain puredns massdns subfinder
     sublist3r amass ffuf sort sed httpx csvcut aquatone
 )
 check_requirements "${tools[@]}"
