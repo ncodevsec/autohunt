@@ -45,11 +45,13 @@ esac
 # Optional second argument
 SCAN_MODE="${2:-}"
 
-# Configuration
+# Paths Configuration
+
+CURRENT_PATH=$(pwd)
 WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOLVER="$SCRIPT_DIR/resolver.txt"
-OUTPUT_DIR="$HOME/bug_hunting_data/$TARGET/subdomain"
+# OUTPUT_DIR="$HOME/bug_hunting_data/$TARGET/subdomain"
+OUTPUT_DIR="$CURRENT_PATH/$TARGET/subdomain"
 
 # Setup
 if [ ! -f "$WORDLIST" ]; then
@@ -122,6 +124,7 @@ fi
 # Take Screenshot
 msg running "Taking screenshot of all alive subdomains - by gowitness"
 cd $OUTPUT_DIR && gowitness scan file -f ./alive.txt --threads 10 --write-db --screenshot-fullpage --delay 3 --save-content --quiet
+cd ..
 
 # Final Summary
 msg header "Final Report"
