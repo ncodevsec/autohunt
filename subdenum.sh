@@ -1,57 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# Colors
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[1;34m'
-SPEACIAL='\033[1;36m'
-NC='\033[0m' # No Color
+SCRIPT_DIR=$(dirname "$0")
 
-# Common String Variables
-DEVIDER="--------------------------------------------------"
-
-# --- Functions ---
-
-# Function to print messages
-msg() {
-    case "$1" in
-        header)  echo -e "${YELLOW}[+] $2${NC}" ;;
-        ok)      echo -e "${GREEN}[+] $2${NC}" ;;
-        speacial)  echo -e "${SPEACIAL}[+]${NC} $2${SPEACIAL}$3${NC}" ;;
-        warn)    echo -e "${YELLOW}[+]${NC} $2${NC}" ;;
-        err)     echo -e "${RED}[-] Error:${NC} $2" >&2 ;;
-        fail)    echo -e "${RED}[!]${NC} $2${NC}" >&2 ;;
-        run)     echo -e "${BLUE}[-]${NC} Running\t: ${BLUE}$2${NC}" ;;
-        info)    echo -e "${YELLOW}[i]${NC} $2${NC}" ;;
-        status)  echo -e "${GREEN}[+]${NC} Status\t: ${GREEN}$2${NC}" ;;
-        *)       echo -e "${BLUE}[-]${NC} $2${NC}" ;;
-    esac
-}
-
-# Function to check for required tools
-check_requirements() {
-    msg header "Checking requirements..."
-    local missing_tools=0
-    for tool in "$@"; do
-        if ! command -v "$tool" &> /dev/null; then
-            msg err "$tool is not installed. Attempting to install..."
-            # NOTE: This assumes a Debian-based system (like Ubuntu) using 'apt'.
-            # You may need to change 'apt-get' to your system's package manager (e.g., 'yum', 'pacman', 'brew').
-            sudo apt-get install -y "$tool" &> /dev/null
-            if ! command -v "$tool" &> /dev/null; then
-                msg fail "Failed to install $tool. Please install it manually."
-                ((missing_tools++))
-            else
-                msg ok "Successfully installed $tool."
-            fi
-        fi
-    done
-    if [ "$missing_tools" -gt 0 ]; then
-        exit 1
-    fi
-    msg ok "All required tools are installed."
-}
+# Include module.sh file
+source $SCRIPT_DIR/module.sh
 
 # Show help
 show_help() {
@@ -64,27 +16,13 @@ show_help() {
     echo -e "  ${YELLOW}subdemun ${NC}${GREEN}example.com${NC} ${YELLOW}--deep${NC} \t# To run in deep mode"
 }
 
-# Function to run a command and handle output
-run_tool() {
-    local tool_name=$1
-    local output_file="$OUTPUT_DIR/$tool_name.txt"
-    shift # Remove tool_name from arguments
-
-    msg run "$tool_name"
-    if "$@" > "$output_file"; then
-        msg status "Finished"
-        if [ -s "$output_file" ]; then
-            local line_count
-            line_count=$(wc -l < "$output_file")
-            msg info "Found\t: ${YELLOW}${line_count// /} items${NC}"
-        fi
-    else
-        msg fail "Status\t:${NC} ${RED}Error on $tool_name${NC}."
-    fi
-    sleep 0.2
-}
-
 # --- Main Script ---
+
+# List of required tools
+tools=(
+    assetfinder jq curl findomain puredns massdns subfinder sublist3r amass ffuf sort sed httpx csvcut awk httpx gowitness
+)
+check_requirements "${tools[@]}"
 
 # Argument check
 if [ $# -eq 0 ]; then
@@ -107,13 +45,6 @@ esac
 # Optional second argument
 SCAN_MODE="${2:-}"
 
-# List of required tools
-tools=(
-    assetfinder jq curl findomain puredns massdns subfinder
-    sublist3r amass ffuf sort sed httpx csvcut aquatone
-)
-check_requirements "${tools[@]}"
-
 # Configuration
 WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -126,9 +57,9 @@ if [ ! -f "$WORDLIST" ]; then
     exit 1
 fi
 mkdir -p "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR/tools_findings"
 
 # Script Overview
-echo
 msg header "Script Overview"
 echo "$DEVIDER"
 msg "" "Task\t: ${GREEN}Subdomain Enumeration${NC}"
@@ -140,10 +71,8 @@ else
 fi
 
 # Subdomain Enumeration
-echo
 msg header "Enumerating Subdomains"
 echo "$DEVIDER"
-
 run_tool "assetfinder" assetfinder -subs-only "$TARGET"
 run_tool "crt" sh -c "curl -s 'https://crt.sh/?q=%25.$TARGET&output=json' | jq -r '.[].name_value'"
 run_tool "findomain" findomain -q -t "$TARGET"
@@ -166,32 +95,36 @@ if [ "$SCAN_MODE" == "deep" ]; then
     fi
 fi
 
-# Merge and Filter
-echo
-msg header "Merging and Filtering Subdomains"
-echo "$DEVIDER"
-msg run "sed"
-msg run "sort"
-cat "$OUTPUT_DIR"/*.txt | sed -E 's#https?://##g' | sort -u > "$OUTPUT_DIR/all.txt"
-msg ok "Merged all subdomains into all.txt"
+# Further Procecing
+msg header "Processing Subdomains"
+echo $DEVIDER
 
-# Check Live Subdomains
-echo
-msg header "Checking Subdomains Status"
-echo "$DEVIDER"
-msg run "httpx"
+# Marging Unique Subdomains
+msg running "Merging unique subdomains into all.txt"
+cat "$OUTPUT_DIR"/tools_findings/*.txt | sed -E 's#https?://##g' | sort -u > "$OUTPUT_DIR/all.txt"
+
+# Check Subdomains Status
+msg running "Checking Subdomains Status - by httpx"
 cat "$OUTPUT_DIR/all.txt" | httpx -o "$OUTPUT_DIR/subdomains.csv" -csv &> /dev/null
-msg status "Finished"
-
 if [ -f "$OUTPUT_DIR/subdomains.csv" ]; then
-    msg run "csvcut"
+    # Removing extra columns
+    msg running "Removing extra columns form CSV file - by csvcut"
     csvcut -c url,status_code,location,title,path,content_type,webserver,tech,cname,host,a,aaaa,resolvers "$OUTPUT_DIR/subdomains.csv" > "$OUTPUT_DIR/temp.csv" && mv "$OUTPUT_DIR/temp.csv" "$OUTPUT_DIR/subdomains.csv"
-    msg status "Finished"
+
+    # Separating alive & dead Subdomains
+    msg running "Separating alive & dead Subdomains - by awk"
+    # Separate alive
+    awk -F',' 'NR>1 {if ($11 != 404) print $1}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/alive.txt
+    # Separate 404
+    awk -F',' 'NR>1 {if ($11 == 404) print $1}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/404.txt
 fi
 
+# Take Screenshot
+msg running "Taking screenshot of all alive subdomains - by gowitness"
+cd $OUTPUT_DIR && gowitness scan file -f ./alive.txt --threads 10 --write-db --screenshot-fullpage --delay 3 --save-content --quiet
+
 # Final Summary
-echo
-msg ok "Subdomain Enumeration Complete"
+msg header "Final Report"
 echo "$DEVIDER"
 TOTAL_SUBS=$(wc -l < "$OUTPUT_DIR/all.txt")
 msg warn "Output Path\t: ${YELLOW}$OUTPUT_DIR${NC}"

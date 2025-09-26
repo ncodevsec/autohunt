@@ -1,26 +1,18 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+SCRIPT_DIR=$(dirname "$0")
+
+# Include module.sh file
+source $SCRIPT_DIR/module.sh
+
 set -euo pipefail
 
-# =========================
-# Colors
-# =========================
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[1;34m'
-WHITE='\033[1;37m'
-NC='\033[0m' # No Color
-
-# =========================
 # Tool info
-# =========================
 TOOL_NAME="subdenum"
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/subdenum.sh"
 ALIAS_LINE="alias $TOOL_NAME='$SCRIPT_PATH'"
 
-# =========================
 # Helper functions
-# =========================
 
 # Check if alias exists in bashrc
 alias_exists() {
@@ -29,6 +21,13 @@ alias_exists() {
 
 # Install the alias
 install_tool() {
+    # List of required tools
+    tools=(
+        assetfinder jq curl findomain puredns massdns subfinder sublist3r amass ffuf sort sed httpx csvcut awk httpx gowitness
+    )
+    check_requirements "${tools[@]}"
+
+    # Make alias on .bashrc
     if alias_exists; then
         echo -e "${YELLOW}[i] Already Installed. Alias exists in ~/.bashrc${NC}"
     else
