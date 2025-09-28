@@ -74,13 +74,12 @@ The default wordlist is `/usr/share/seclists/Discovery/DNS/subdomains-top1millio
 
 Clone the repository and make the script executable:
 
-### One line installation command
-```bash
-git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x setup.sh && ./setup.sh -i
-```
 ### Step by step installation process
 ```bash
 # Clone repo
+git clone https://github.com/ncodevsec/autohunt.git
+
+# Goto the tool directory
 cd autohunt
 
 # Make setup script executable
@@ -88,6 +87,9 @@ chmod +x setup.sh
 
 # Install alias
 ./setup.sh -i
+
+# Load the ~/.bashrc changes to this session
+source ~/.bashrc
 
 # Run the tool
 subdenum <domain>
@@ -100,7 +102,7 @@ subdenum <domain>
 
 ```
 
-One line installation command
+### One line installation command
 ```bash
 git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x setup.sh && ./setup.sh -i && source ~/.bashrc
 ```
