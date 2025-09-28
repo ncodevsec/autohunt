@@ -16,13 +16,7 @@ show_help() {
     echo -e "  ${YELLOW}subdemun ${NC}${GREEN}example.com${NC} ${YELLOW}--deep${NC} \t# To run in deep mode"
 }
 
-# --- Main Script ---
-
-# List of required tools
-tools=(
-    assetfinder jq curl findomain puredns massdns subfinder sublist3r amass ffuf sort sed httpx csvcut awk httpx gowitness
-)
-check_requirements "${tools[@]}"
+# ----------[ Main Script ]----------
 
 # Argument check
 if [ $# -eq 0 ]; then
@@ -45,19 +39,27 @@ esac
 # Optional second argument
 SCAN_MODE="${2:-}"
 
-# Paths Configuration
+# Check requirement tools (Installed or not)
+check_requirements "${TOOLS[@]}"
 
+# ----------> Paths Configuration
+
+# Current Path
 CURRENT_PATH=$(pwd)
-WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
-RESOLVER="$SCRIPT_DIR/resolver.txt"
-# OUTPUT_DIR="$HOME/bug_hunting_data/$TARGET/subdomain"
-OUTPUT_DIR="$CURRENT_PATH/$TARGET/subdomain"
 
-# Setup
+# DNS Resolver
+RESOLVER="$SCRIPT_DIR/resolver.txt"
+
+# Wordlist
+WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
 if [ ! -f "$WORDLIST" ]; then
     msg err "Seclist not found at $WORDLIST. Please install it."
     exit 1
 fi
+
+# Output Directory
+# OUTPUT_DIR="$HOME/bug_hunting_data/$TARGET/subdomain"
+OUTPUT_DIR="$CURRENT_PATH/$TARGET/subdomain"
 mkdir -p "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR/tools_findings"
 
@@ -103,7 +105,7 @@ echo $DEVIDER
 
 # Marging Unique Subdomains
 msg running "Merging unique subdomains into all.txt"
-cat "$OUTPUT_DIR"/tools_findings/*.txt | sed -E 's#https?://##g' | sort -u > "$OUTPUT_DIR/all.txt"
+filter_subdomain "$OUTPUT_DIR/tools_findings/*.txt" $OUTPUT_DIR/all.txt
 
 # Check Subdomains Status
 msg running "Checking Subdomains Status - by httpx"
@@ -111,20 +113,19 @@ cat "$OUTPUT_DIR/all.txt" | httpx -o "$OUTPUT_DIR/subdomains.csv" -csv &> /dev/n
 if [ -f "$OUTPUT_DIR/subdomains.csv" ]; then
     # Removing extra columns
     msg running "Removing extra columns form CSV file - by csvcut"
-    csvcut -c url,status_code,location,title,path,content_type,webserver,tech,cname,host,a,aaaa,resolvers "$OUTPUT_DIR/subdomains.csv" > "$OUTPUT_DIR/temp.csv" && mv "$OUTPUT_DIR/temp.csv" "$OUTPUT_DIR/subdomains.csv"
-
+    csvcut -c status_code,url,location,title,path,content_type,webserver,tech,cname,host,resolvers "$OUTPUT_DIR/subdomains.csv" > "$OUTPUT_DIR/temp.csv" && mv "$OUTPUT_DIR/temp.csv" "$OUTPUT_DIR/subdomains.csv"
     # Separating alive & dead Subdomains
     msg running "Separating alive & dead Subdomains - by awk"
     # Separate alive
-    awk -F',' 'NR>1 {if ($11 != 404) print $1}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/alive.txt
+    awk -F',' 'NR>1 {if ($1 != 404) print $2}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/alive.txt
     # Separate 404
-    awk -F',' 'NR>1 {if ($11 == 404) print $1}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/404.txt
+    awk -F',' 'NR>1 {if ($1 == 404) print $2}' $OUTPUT_DIR/subdomains.csv > $OUTPUT_DIR/404.txt
 fi
 
 # Take Screenshot
 msg running "Taking screenshot of all alive subdomains - by gowitness"
-cd $OUTPUT_DIR && gowitness scan file -f ./alive.txt --threads 10 --write-db --screenshot-fullpage --delay 3 --save-content --quiet
-cd ..
+cd $OUTPUT_DIR && gowitness scan file -f $OUTPUT_DIR/alive.txt --threads 20 --delay 10 --timeout 15 --write-db --save-content --skip-html --screenshot-fullpage --quiet
+cd ../
 
 # Final Summary
 msg header "Final Report"

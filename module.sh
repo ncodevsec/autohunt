@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ----------[Common Variables]----------
 
 # Colors
 RED='\033[1;31m'
@@ -11,9 +12,14 @@ WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
 # Common String Variables
-DEVIDER="--------------------------------------------------"
+DEVIDER="------------------------------------------------------------"
 
-# --------------[ Functions ]--------------
+# Requirement Tools
+TOOLS=(
+    assetfinder jq curl findomain puredns massdns subfinder sublist3r amass ffuf sort sed httpx csvcut awk httpx gowitness
+)
+
+# ----------[Functions]----------
 
 # Function to print messages
 msg() {
@@ -73,4 +79,11 @@ run_tool() {
         msg fail "Status\t:${NC} ${RED}Error on $tool_name${NC}."
     fi
     sleep 0.2
+}
+
+# Filter Subdomains
+filter_subdomain() {
+    local input_file=$1
+    local output_file=$2
+    cat $input_file | tr '[:upper:]' '[:lower:]' | sed -E 's#https?://##g' | sort -u > $output_file
 }

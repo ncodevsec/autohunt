@@ -24,7 +24,7 @@ Install the following tools before running:
 
 ```bash
 # System packages
-sudo apt update && sudo apt install -y curl jq git unzip
+sudo apt update && sudo apt install -y curl jq
 
 # Amass (Deep mode)
 sudo apt install -y amass
@@ -74,8 +74,12 @@ The default wordlist is `/usr/share/seclists/Discovery/DNS/subdomains-top1millio
 
 Clone the repository and make the script executable:
 
+### One line installation command
 ```bash
-git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x subdenum.sh
+git clone https://github.com/ncodevsec/autohunt.git && cd autohunt && chmod +x setup.sh && ./setup.sh -i
+```
+### Step by step installation process
+```bash
 # Clone repo
 cd autohunt
 

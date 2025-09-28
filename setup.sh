@@ -12,7 +12,7 @@ TOOL_NAME="subdenum"
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/subdenum.sh"
 ALIAS_LINE="alias $TOOL_NAME='$SCRIPT_PATH'"
 
-# Helper functions
+# ----------[Helper functions]----------
 
 # Check if alias exists in bashrc
 alias_exists() {
@@ -22,10 +22,7 @@ alias_exists() {
 # Install the alias
 install_tool() {
     # List of required tools
-    tools=(
-        assetfinder jq curl findomain puredns massdns subfinder sublist3r amass ffuf sort sed httpx csvcut awk httpx gowitness
-    )
-    check_requirements "${tools[@]}"
+    check_requirements "${TOOLS[@]}"
 
     # Make alias on .bashrc
     if alias_exists; then
@@ -61,9 +58,7 @@ show_help() {
     echo -e "  ${YELLOW}$0 ${NC}${RED}--remove${NC} \t# To uninstall the tool"
 }
 
-# =========================
-# Argument parsing
-# =========================
+# ----------[Argument parsing]----------
 case "${1:-}" in
     -i|--install)
         install_tool
