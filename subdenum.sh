@@ -30,10 +30,10 @@ case "$1" in
     -h|--help)
         show_help
         exit 0
-        ;;
+    ;;
     *)
         TARGET="$1"
-        ;;
+    ;;
 esac
 
 # Optional second argument
@@ -126,7 +126,12 @@ fi
 ALIVE=$(wc -l < "$OUTPUT_DIR/alive.txt")
 msg running "Taking screenshot of all $YELLOW$ALIVE$NC $BLUE alive subdomains - by gowitness"
 TIME=$(($ALIVE / 60))
-msg running "It will take $YELLOW$TIME - $(( ($TIME / 3) * 4)) min$NC$BLUE to complete"
+if [ $TIME < 1 ]; then
+    msg running "It will take less then$YELLOW 1 min$NC$BLUE to complete"
+else
+    msg running "It will take $YELLOW$TIME - $(( ($TIME / 3) * 4)) min$NC$BLUE to complete"
+    
+fi
 cd $OUTPUT_DIR && gowitness scan file -f $OUTPUT_DIR/alive.txt --threads 20 --delay 10 --timeout 15 --write-db --save-content --skip-html --screenshot-fullpage --quiet
 cd ../
 

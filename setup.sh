@@ -23,7 +23,7 @@ alias_exists() {
 install_tool() {
     # List of required tools
     check_requirements "${TOOLS[@]}"
-
+    
     # Make alias on .bashrc
     if alias_exists; then
         echo -e "${YELLOW}[i] Already Installed. Alias exists in ~/.bashrc${NC}"
@@ -62,16 +62,16 @@ show_help() {
 case "${1:-}" in
     -i|--install)
         install_tool
-        ;;
+    ;;
     -r|--remove)
         uninstall_tool
-        ;;
+    ;;
     -h|--help)
         show_help
-        ;;
+    ;;
     *)
         echo -e "${RED}[X] Invalid option${NC}"
         show_help
         exit 1
-        ;;
+    ;;
 esac

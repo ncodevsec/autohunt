@@ -30,7 +30,7 @@ msg() {
         speacial)echo -e "${SPEACIAL}[+]${NC} $2${SPEACIAL}$3${NC}" ;;
         err)     echo -e "${RED}[-] Error:${NC} $2" >&2 ;;
         fail)    echo -e "${RED}[!]${NC} $2${NC}" >&2 ;;
-        run)     echo -e "${BLUE}[-]${NC} Running\t: ${BLUE}$2${NC}" ;;
+        run)     echo -e "${BLUE}[+]${NC} Running\t: ${BLUE}$2${NC}" ;;
         warn)    echo -e "${YELLOW}[+]${NC} $2${NC}" ;;
         info)    echo -e "${YELLOW}[i]${NC} $2${NC}" ;;
         status)  echo -e "${GREEN}[+]${NC} Status\t: ${GREEN}$2${NC}" ;;
@@ -67,7 +67,7 @@ run_tool() {
     local tool_name=$1
     local output_file="$OUTPUT_DIR/tools_findings/$tool_name.txt"
     shift # Remove tool_name from arguments
-
+    
     msg run "$tool_name"
     if "$@" > "$output_file"; then
         if [ -s "$output_file" ]; then
