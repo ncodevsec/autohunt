@@ -51,10 +51,10 @@ CURRENT_PATH=$(pwd)
 RESOLVER="$SCRIPT_DIR/resolver.txt"
 
 # Wordlist
-WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
-if [ ! -f "$WORDLIST" ]; then
-    msg err "Seclist not found at $WORDLIST. Please install it."
-    exit 1
+if [ "$SCAN_MODE" == "deep" ]; then
+    WORDLIST="$SCRIPT_DIR/seclists-subdomains-top1million-5000.txt"
+else
+    WORDLIST="$SCRIPT_DIR/seclists-subdomains-top1million-110000.txt"
 fi
 
 # Output Directory
@@ -87,7 +87,7 @@ run_tool "sublist3r" sh -c "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-
 # Deep Scan
 if [ "$SCAN_MODE" == "deep" ]; then
     run_tool "amass" amass enum -d "$TARGET" -silent -nocolor
-    
+
     msg run "ffuf"
     ffuf -w "$WORDLIST" -u "https://FUZZ.$TARGET" -of json -o "$OUTPUT_DIR/ffuf.json" &> /dev/null
     if [ -f "$OUTPUT_DIR/ffuf.json" ]; then

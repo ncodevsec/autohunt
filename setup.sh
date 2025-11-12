@@ -23,6 +23,28 @@ alias_exists() {
 install_tool() {
     # List of required tools
     check_requirements "${TOOLS[@]}"
+
+    # Download Wordlist
+    WORD1_URL="https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/DNS/subdomains-top1million-110000.txt"
+    WORD2_URL="https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/DNS/subdomains-top1million-5000.txt"
+    DEST1="$SCRIPT_DIR/seclists-subdomains-top1million-110000.txt"
+    DEST2="$SCRIPT_DIR/seclists-subdomains-top1million-5000.txt"
+
+    # Ensure wordlists exist in SCRIPT_DIR; download missing ones
+    if [ -f "$DEST1" ] && [ -f "$DEST2" ]; then
+        echo -e "${YELLOW}[i] Wordlists already present in $SCRIPT_DIR${NC}"
+    else
+        echo -e "${YELLOW}[i] Downloading missing wordlists to $SCRIPT_DIR${NC}"
+        # Download first wordlist if missing
+        if [ ! -f "$DEST1" ]; then
+            curl -fsSL "$WORD1_URL" -o "$DEST1.tmp" && mv "$DEST1.tmp" "$DEST1" || { echo -e "${RED}[X] Failed to download $WORD1_URL${NC}"; exit 1; }
+        fi
+        # Download second wordlist if missing
+        if [ ! -f "$DEST2" ]; then
+            curl -fsSL "$WORD2_URL" -o "$DEST2.tmp" && mv "$DEST2.tmp" "$DEST2" || { echo -e "${RED}[X] Failed to download $WORD2_URL${NC}"; exit 1; }
+        fi
+        echo -e "${GREEN}[+] Wordlists downloaded${NC}"
+    fi
     
     # Make alias on .bashrc
     if alias_exists; then

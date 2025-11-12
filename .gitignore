@@ -1,4 +1,6 @@
 # VS Code Settigns
 .vscode/
-test/
 
+# Wordlist (These will download automatically at installation time)
+seclists-subdomains-top1million-110000.txt
+seclists-subdomains-top1million-5000.txt
