@@ -51,10 +51,10 @@ CURRENT_PATH=$(pwd)
 RESOLVER="$SCRIPT_DIR/resolver.txt"
 
 # Wordlist
-if [ "$SCAN_MODE" == "deep" ]; then
-    WORDLIST="$SCRIPT_DIR/seclists-subdomains-top1million-5000.txt"
-else
+if [ "$SCAN_MODE" == "--deep" ]; then
     WORDLIST="$SCRIPT_DIR/seclists-subdomains-top1million-110000.txt"
+else
+    WORDLIST="$SCRIPT_DIR/seclists-subdomains-top1million-5000.txt"
 fi
 
 # Output Directory
@@ -85,14 +85,22 @@ run_tool "subfinder" subfinder -d "$TARGET" -silent
 run_tool "sublist3r" sh -c "sublist3r -d $TARGET -n 2> /dev/null | grep -Eo '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | sort -u"
 
 # Deep Scan
-if [ "$SCAN_MODE" == "deep" ]; then
-    run_tool "amass" amass enum -d "$TARGET" -silent -nocolor
+if [ "$SCAN_MODE" == "--deep" ]; then
+    # Amass
+    run_tool "amass" amass enum -d "$TARGET"
 
+    # FFUF
     msg run "ffuf"
-    ffuf -w "$WORDLIST" -u "https://FUZZ.$TARGET" -of json -o "$OUTPUT_DIR/ffuf.json" &> /dev/null
-    if [ -f "$OUTPUT_DIR/ffuf.json" ]; then
-        jq -r '.results[].url' "$OUTPUT_DIR/ffuf.json" | sed 's|https?://||' > "$OUTPUT_DIR/ffuf.txt"
-        rm "$OUTPUT_DIR/ffuf.json"
+    FFUFjson="$OUTPUT_DIR/tools_findings/ffuf.json" 
+    FFUFtxt="$OUTPUT_DIR/tools_findings/ffuf.txt" 
+    ffuf -w "$WORDLIST" -u "https://FUZZ.$TARGET" -of json -o "$FFUFjson" &> /dev/null
+    if [ -f "$FFUFjson" ]; then
+        jq -r '.results[].url' "$FFUFjson" | sed 's|https?://||' > "$FFUFtxt"
+        rm "$FFUFjson"
+        if [ -s "$FFUFtxt" ]; then
+            line_count=$(wc -l < "$FFUFtxt")
+            msg info "Found\t: ${YELLOW}${line_count// /} items${NC}"
+        fi
         msg status "Finished"
     else
         msg fail "Status\t:${NC} ${RED}Error on ffuf${NC}."
@@ -105,7 +113,7 @@ echo $DEVIDER
 
 # Marging Unique Subdomains
 msg running "Merging unique subdomains into all.txt"
-filter_subdomain "$OUTPUT_DIR/tools_findings/*.txt" $OUTPUT_DIR/all.txt
+filter_subdomain $TARGET "$OUTPUT_DIR/tools_findings/*.txt" $OUTPUT_DIR/all.txt
 
 # Check Subdomains Status
 msg running "Checking Subdomains Status - by httpx"
@@ -125,14 +133,7 @@ fi
 # Take Screenshot
 ALIVE=$(wc -l < "$OUTPUT_DIR/alive.txt")
 msg running "Taking screenshot of all $YELLOW$ALIVE$NC $BLUE alive subdomains - by gowitness"
-TIME=$(($ALIVE / 60))
-if [ $TIME < 1 ]; then
-    msg running "It will take less then$YELLOW 1 min$NC$BLUE to complete"
-else
-    msg running "It will take $YELLOW$TIME - $(( ($TIME / 3) * 4)) min$NC$BLUE to complete"
-    
-fi
-cd $OUTPUT_DIR && gowitness scan file -f $OUTPUT_DIR/alive.txt --threads 20 --delay 10 --timeout 15 --write-db --save-content --skip-html --screenshot-fullpage --quiet
+cd $OUTPUT_DIR && gowitness scan file -f $OUTPUT_DIR/alive.txt --threads 20 --delay 10 --timeout 15 --write-db --save-content --skip-html --quiet
 cd ../
 
 # Final Summary

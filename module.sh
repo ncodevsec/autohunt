@@ -83,7 +83,8 @@ run_tool() {
 
 # Filter Subdomains
 filter_subdomain() {
-    local input_file=$1
-    local output_file=$2
-    cat $input_file | tr '[:upper:]' '[:lower:]' | sed -E 's#https?://##g' | sort -u > $output_file
+    local target=$1
+    local input_file=$2
+    local output_file=$3
+    cat $input_file | tr '[:upper:]' '[:lower:]' | sed -E 's#https?://##; s#/.*##' | sort -u | grep -E "\.${target}$" > $output_file
 }
