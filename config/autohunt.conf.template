@@ -1,0 +1,37 @@
+################################################################################
+# Autohunt Configuration Template
+# Copy this file to config/autohunt.conf and customize for your environment
+################################################################################
+
+# ========== Logging Configuration ==========
+# Log level: DEBUG(0), INFO(1), WARN(2), ERROR(3)
+LOG_LEVEL=1
+
+# ========== Subdomain Enumeration ==========
+# Maximum number of threads for concurrent operations
+MAX_THREADS=20
+
+# Timeout for HTTP requests (seconds)
+HTTP_TIMEOUT=15
+
+# Delay between requests (milliseconds)
+REQUEST_DELAY=100
+
+# ========== Output Configuration ==========
+# Base directory for results
+# If empty, results go to ./results relative to CWD
+RESULTS_BASE_DIR=""
+
+# Enable screenshot capture with gowitness
+ENABLE_SCREENSHOTS=true
+
+# ========== Advanced Options ==========
+# Skip certificate verification (use with caution)
+SKIP_CERT_CHECK=false
+
+# Use Tor/Proxy (format: protocol://host:port)
+# Leave empty to disable
+PROXY=""
+
+# Custom DNS servers (comma-separated)
+CUSTOM_DNS=""

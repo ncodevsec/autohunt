@@ -1,0 +1,43 @@
+#!/bin/bash
+# Bash completion script for autohunt
+# Install with: source autohunt.bash_completion
+# Or copy to /etc/bash_completion.d/autohunt or ~/.bash_completion.d/
+
+_autohunt_completion() {
+    local cur prev words cword
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    words=("${COMP_WORDS[@]}")
+    cword=${COMP_CWORD}
+
+    # Main commands
+    local commands="subdenum setup list version help"
+    
+    case "${prev}" in
+        autohunt)
+            # First argument - show main commands
+            COMPREPLY=( $(compgen -W "${commands}" -- ${cur}) )
+            return 0
+            ;;
+        subdenum)
+            # subdenum accepts a domain and options
+            local subdenum_opts="--deep --help"
+            COMPREPLY=( $(compgen -W "${subdenum_opts}" -- ${cur}) )
+            return 0
+            ;;
+        setup)
+            # setup accepts install/remove options
+            local setup_opts="--install --remove --help -i -r -h"
+            COMPREPLY=( $(compgen -W "${setup_opts}" -- ${cur}) )
+            return 0
+            ;;
+        *)
+            # Default - show main commands
+            COMPREPLY=( $(compgen -W "${commands}" -- ${cur}) )
+            return 0
+            ;;
+    esac
+}
+
+complete -o bashdefault -o default -o nospace -F _autohunt_completion autohunt
