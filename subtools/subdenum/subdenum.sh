@@ -353,27 +353,27 @@ main() {
     printf "${CYAN}  • Wordlist\t:${NC}\t$WORDLIST\n"
     msg divider
     
-    # # Phase 1: Subdomain Discovery
-    # msg header "Phase 1: Subdomain Discovery"
-    # run_assetfinder
-    # run_crtsh
-    # run_findomain
-    # run_puredns
-    # run_subfinder
-    # run_sublist3r
+    # Phase 1: Subdomain Discovery
+    msg header "Phase 1: Subdomain Discovery"
+    run_assetfinder
+    run_crtsh
+    run_findomain
+    run_puredns
+    run_subfinder
+    run_sublist3r
     
-    # # Phase 2: Deep Scan (optional)
-    # if [ "$SCAN_MODE" == "Deep" ]; then
-    #     msg header "Phase 2: Deep Scanning"
-    #     run_amass
-    #     run_ffuf
-    # fi
+    # Phase 2: Deep Scan (optional)
+    if [ "$SCAN_MODE" == "Deep" ]; then
+        msg header "Phase 2: Deep Scanning"
+        run_amass
+        run_ffuf
+    fi
     
-    # # Phase 3: Processing
-    # msg header "Phase 3: Processing"
-    # merge_and_filter
-    # check_live_hosts
-    # take_screenshots
+    # Phase 3: Processing
+    msg header "Phase 3: Processing"
+    merge_and_filter
+    check_live_hosts
+    take_screenshots
     
     # Generate report
     generate_report
